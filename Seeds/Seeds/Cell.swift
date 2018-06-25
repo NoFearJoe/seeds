@@ -67,10 +67,6 @@ final class Cell: UICollectionViewCell {
         super.awakeFromNib()
         
         layer.cornerRadius = 6
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = .zero
-        layer.shadowRadius = 2
-        layer.shadowOpacity = 0.25
     }
     
 }

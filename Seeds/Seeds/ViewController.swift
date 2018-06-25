@@ -16,6 +16,10 @@ class ViewController: UIViewController {
     private var selectedCell: CellModel?
     private var suggestedCells: (CellModel, CellModel)?
     
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
