@@ -11,10 +11,19 @@ import UIKit
 class ViewController: UIViewController {
 
     @IBOutlet private var gameField: UICollectionView!
+    @IBOutlet private var scoreLabel: UILabel!
     
     var cells: [CellModel] = []
     private var selectedCell: CellModel?
     private var suggestedCells: (CellModel, CellModel)?
+    
+    private var score: Int = 0 {
+        didSet {
+            scoreLabel.text = "\(score)"
+        }
+    }
+    
+    private let columns: Int = 9
     
     override var prefersStatusBarHidden: Bool {
         return true
@@ -57,6 +66,7 @@ class ViewController: UIViewController {
     @IBAction func refresh() {
         selectedCell = nil
         suggestedCells = nil
+        score = 0
         cells = generateInitialCells()
         gameField.reloadData()
     }
@@ -123,6 +133,7 @@ extension ViewController: UICollectionViewDelegate {
                 self.selectedCell = nil
                 collectionView.reloadItems(at: ([indexPath, selectedIndexPath] + suggestedIndexPaths).unique)
                 removeRowsIfNeeded([model.row, selectedRow])
+                score += 1
             }
         }
     }
@@ -134,8 +145,8 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let availableWidth = (min(collectionView.frame.width, collectionView.frame.height) - 20) - (4 * 8)
-        let size = availableWidth / 9
+        let availableWidth = (min(collectionView.frame.width, collectionView.frame.height) - 20) - (4 * CGFloat(columns - 1))
+        let size = availableWidth / CGFloat(columns)
         return CGSize(width: size, height: size)
     }
     
@@ -144,7 +155,6 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
 private extension ViewController {
     
     func generateInitialCells() -> [CellModel] {
-        let columns = 9
         let rows = 3
         
         var cells = [CellModel]()
@@ -154,7 +164,7 @@ private extension ViewController {
                 if row == 0 {
                     value = column + 1
                 } else {
-                    value = Int(arc4random_uniform(8)) + 1
+                    value = Int(arc4random_uniform(UInt32(columns))) + 1
                 }
                 cells.append(CellModel(value: value, row: row, column: column))
             }
@@ -169,7 +179,7 @@ private extension ViewController {
         var column = 0
         for cell in (self.cells.filter { $0.isAvailable }) {
             cells.append(CellModel(value: cell.value, row: row, column: column, isSelected: false, isAvailable: true, isHighlighted: false))
-            if column == 8 {
+            if column == columns - 1 {
                 row += 1
                 column = 0
             } else {
@@ -177,8 +187,8 @@ private extension ViewController {
             }
         }
         if column != 0 {
-            for c in (column..<9) {
-                let value = Int(arc4random_uniform(8)) + 1
+            for c in (column..<columns) {
+                let value = Int(arc4random_uniform(UInt32(columns))) + 1
                 cells.append(CellModel(value: value, row: row, column: c))
             }
         }
@@ -235,7 +245,7 @@ private extension ViewController {
     }
     
     func getIndexPath(for cell: CellModel) -> IndexPath {
-        return IndexPath(item: (cell.row * 9) + cell.column, section: 0)
+        return IndexPath(item: (cell.row * columns) + cell.column, section: 0)
     }
     
     // Нужно сдвигать все row у ячеек
@@ -282,7 +292,7 @@ private extension ViewController {
     
     func removeRow(_ row: Int) {
         var indexesToRemove: [Int] = []
-        for column in (0..<9) {
+        for column in (0..<columns) {
             guard let index = cells.index(where: { $0.row == row && $0.column == column }) else { continue }
             indexesToRemove.append(index)
         }
